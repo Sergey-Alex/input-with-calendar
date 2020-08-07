@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    #inp {
+        border-color: blue;
+        display: inline-block;
+
+    }
+ #parent {
+     text-align: left;
+
+ }
+    #calendar {
+        display: none;
+    }
+    #calendar td, #calendar th {
+        padding: 3px 8px;
+        border: 1px solid black;
+        text-align: center;
+        cursor: pointer;
+    }
+</style>
+<input type="text" id="inp">
+<br>
+<a href="#" id="left">&#8592</a>
+
+<div id="info"></div>
+
+<a href="#" id="right">&#8594</a>
+<body>
+ <div id="parent">
+     <div id="calendar">
+         <table>
+             <thead>
+             <tr>
+                 <th>ПН</th>
+                 <th>ВТ</th>
+                 <th>СР</th>
+                 <th>ЧТ</th>
+                 <th>ПТ</th>
+                 <th>СБ</th>
+                 <th>ВС</th>
+             </tr>
+             </thead>
+             <tbody class="body"></tbody>
+         </table>
+     </div>
+
+ </div>
+<script>
+let calendar = document.querySelector('#calendar');
+let body = calendar.querySelector('.body');
+let date = new Date();
+let year = date.getFullYear();
+let month = date.getMonth();
+let inp = document.getElementById('inp');
+
+function show() {
+    calendar.style.display = 'inline-block';
+    function range(count) {
+        let arr = [];
+        for (let i = 1; i <= count; i++){
+            arr.push(i);
+        }
+        return arr
+    }
+    function getLastDay(year, month) {
+        let date = new Date(year, month + 1, 0)
+        let lastDay = date.getDate()
+        return lastDay;
+
+    }
+    function getFirstWeekDay(year, month) {
+        let num = (new Date(year, month, 1)).getDay();
+        if (num == 0)
+            return 6;
+        else
+            return num - 1;
+    }
+    function getLastWeekDay(year, month) {
+        let num = (new Date(year, month, getLastDay(year, month))).getDay();
+        if(num == 0)
+            return 6;
+        else
+            return num - 1;
+    }
+    function normalize(arr, left, right) {
+
+        for (let i = 0; i < left; i++){
+            arr.unshift('');
+        }
+        for (let j = 0; j < right; j++){
+            arr.push('');
+        }
+        return arr
+
+    }
+    function chunk(arr, n) {
+        let res = [];
+        let count = Math.ceil(arr.length/n);
+        for (let i = 0; i < count; i++){
+            let elems = arr.splice(0, n);
+            res.push(elems)
+        }
+        return res
+    }
+    function createTable(parent, arr) {
+        parent.innerHTML = '';
+        for (let sub of arr){
+            let tr = document.createElement('tr')
+            for (let num of sub){
+                let td = document.createElement('td');
+                td.classList.add('cells');
+                td.innerHTML = num;
+                tr.appendChild(td);
+            }
+            parent.appendChild(tr);
+        }
+    }
+
+    function draw(body, year, month) {
+        let arr = range(getLastDay(year, month))
+        let firstWeekDay = getFirstWeekDay(year,month)
+        let lastWeekDay = getLastWeekDay(year,month)
+        let nums = chunk(normalize(arr, firstWeekDay, 6 - lastWeekDay), 7)
+        createTable(body, nums)
+    }
+
+    draw(body, year, month);
+
+    let left = document.getElementById('left');
+    let right = document.getElementById('right');
+    let months = ['январь', 'февраль', 'март','апрель', 'май', 'июнь','июль',
+        'августа', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+    let countMonths = 0;
+    info.innerHTML = months[month] + ' ' + year;
+    right.addEventListener('click', function (e) {
+        e.preventDefault();
+        draw(body,getNextYear(year,month), getNextMonth(month));
+        let num = new Date(year, month + countMonths);
+        info.innerHTML = months[num.getMonth()]+ ' ' + num.getFullYear();
+    })
+    left.addEventListener('click',function (e) {
+        e.preventDefault();
+        draw(body, getPrevYear(year, month), getPrevMonth(month))
+        let num = new Date(year, month + countMonths);
+        info.innerHTML = months[num.getMonth()]+ ' ' + num.getFullYear();
+    })
+    function getNextYear(year, month) {
+        return new Date(year, month + (countMonths + 1)).getFullYear();
+    }
+    function getNextMonth(month) {
+        countMonths++;
+        return month + countMonths;
+    }
+    function getPrevYear(year, month) {
+        return new Date(year, month - countMonths - 1).getFullYear();
+    }
+    function getPrevMonth(month){
+        countMonths--;
+        return month - countMonths;
+
+    }
+
+    function chooseCell() {
+        let tds = document.querySelectorAll('td');
+        for (let td of tds){
+            td.addEventListener('click', function () {
+                inp.value = td.innerHTML + " " + months[date.getMonth()] + ' ' + year;
+                if (inp.value !== ''){
+                    calendar.style.display = 'none';
+                }
+            })
+        }
+
+    }
+    chooseCell()
+
+}
+inp.addEventListener('focus', show)
+
+
+</script>
+</body>
+</html>
